@@ -1,7 +1,5 @@
-import time
 import board
 import neopixel_spi as neopixel
-import random
 
 from utils.decorators import singleton
 
