@@ -1,38 +1,59 @@
+import os
+from pathlib import Path
 import re
 import json
-from pathlib import Path
+import sys
 
+from utils.decorators import singleton
+
+@singleton
 class Numberplate:
-    def __init__(self, data_file=None):
-        if data_file is None:
-            # Get the project root assuming this file is in src/
-            project_root = Path(__file__).parent.parent.parent
-            self.data_file = project_root / "data" / "numberplates.json"
-        else:
-            self.data_file = Path(data_file)
-
+    ROOT_DIR = Path(sys.prefix).parent 
+    NUMBERPLATE_PATH = "./data/numberplates.json"
+    
+    def __init__(self):
         self.plates = self._load_numberplates()
 
+        self._numberplate = ""
+        self.full = False
+
     def _load_numberplates(self):
-        if self.data_file.exists():
-            with open(self.data_file, "r") as f:
-                return json.load(f)
-        return {}
+        with open(os.path.join(self.ROOT_DIR, self.NUMBERPLATE_PATH), "r") as f:
+            return json.load(f)
+    
+    @property
+    def numberplate(self):
+        return self._numberplate
+
+    @numberplate.setter
+    def numberplate(self, value):
+        if not isinstance(value, str):
+            raise ValueError("Numberplate must be a string.")
+        self._numberplate = value.strip().upper()
+        self.validate()
+        self.check_if_full()
 
     def _save_numberplates(self):
-        with open(self.data_file, "w") as f:
+        with open(os.path.join(self.ROOT_DIR, self.NUMBERPLATE_PATH), "w") as f:
             json.dump(self.plates, f, indent=2)
 
-    def validate(self, numberplate: str):
+    def validate(self):
         pattern = r"^[A-Z]{1,3}-[A-Z]{1,2}-\d{1,4}$"
-        return bool(re.match(pattern, numberplate))
+        return bool(re.match(pattern, self.numberplate))
 
-    def is_full(self, numberplate):
-        return self.plates.get(numberplate, 0) >= 4
+    def check_if_full(self):
+        self.full = self.plates.get(self.numberplate, 0) >= 4
 
-    def add(self, numberplate):
-        if not self.is_full(numberplate):
-            self.plates[numberplate] = self.plates.get(numberplate, 0) + 1
+
+    def add(self):
+        if not self.full:
+            self.plates[self.numberplate] = self.plates.get(self.numberplate, 0) + 1
             self._save_numberplates()
+            self.check_if_full()
             return True
         return False
+
+    def remove(self):
+        self.plates[self.numberplate] -= 1
+        self._save_numberplates()
+        self.check_if_full()

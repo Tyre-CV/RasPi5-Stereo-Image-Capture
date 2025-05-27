@@ -1,3 +1,4 @@
+import time
 import board
 import neopixel_spi as neopixel
 
@@ -16,6 +17,9 @@ class LightController:
 
         self.brightness = 1.0
         self.on = False
+
+        # Show that light is working and the system is ready
+        self.show_off()
 
     def set_brightness(self, brightness):
         """
@@ -51,6 +55,24 @@ class LightController:
             self.pixels.fill((0, 0, 0))
             
         self.pixels.brightness = self.brightness
+        self.pixels.show()
+
+    def show_off(self):
+        steps = 500 # smoothness of the fade effect
+        for i in range(self.NUM_PIXELS):
+            for j in range(steps):
+                brightness = int(255 * j / (steps - 1))
+                self.pixels[i] = (brightness, brightness, brightness)
+                self.pixels.show()
+        
+        self.pixels.fill((0, 0, 0))
+        self.pixels.show()
+        time.sleep(0.1)
+        # Flashbang
+        self.pixels.fill((255, 255, 255))
+        self.pixels.show()   
+        time.sleep(0.1)
+        self.pixels.fill((0, 0, 0))
         self.pixels.show()
 
     
