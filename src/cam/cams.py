@@ -64,21 +64,27 @@ class StereoCamera:
         # Focus has to be set manulally for each camera
 
     def start_cameras(self):
-        # Start the cam
+        """
+        Start both the right and left cameras.
+        """
         self.right_cam.start()
         self.left_cam.start()
 
     def stop_cameras(self):
-        # Stop the cam
+        """
+        Stop both the right and left cameras.
+        """
         self.right_cam.stop()
         self.left_cam.stop()
 
 
     def adjust_config(self, controls_dict={}):
-        # Cast types for specific controls
-        # FLoat: Sharpness, Contrast, AnalogueGain
-        # Int: NoiseReductionMode, FrameDurationLimits, ExposureTime
-        # print(f"Adjusting camera controls with: {controls_dict}")
+        """
+        Adjust camera configuration controls for both cameras.
+        Casts values to the correct type as defined in CONTROLS.
+        Args:
+            controls_dict (dict): Dictionary of control names and their values.
+        """
         for control, value in controls_dict.items():
             if control in self.CONTROLS:
                 try:
@@ -86,28 +92,27 @@ class StereoCamera:
                 except ValueError as e:
                     print(f"Error converting {control} to {self.CONTROLS[control]}: {e}")
                     continue
-        # print(f"Setting controls: {controls_dict}")
         self.current_controls = controls_dict
-        # Set controls for both cameras
         self.right_cam.set_controls(self.current_controls)
         self.left_cam.set_controls(self.current_controls)
 
-        # with self.right_cam.controls as right_controls:
-        #     right_controls.ExposureTime = self.current_controls.get('ExposureTime', 10000)
-        #     right_controls.AnalogueGain = controls_dict.get('AnalogueGain', 1.0)
-        # with self.left_cam.controls as left_controls:
-        #     left_controls.ExposureTime = controls_dict.get('ExposureTime', 10000)
-        #     left_controls.AnalogueGain = controls_dict.get('AnalogueGain', 1.0)
-
     def get_cam_dims(self):
-        # {'use_case': 'still', 'transform': <libcamera.Transform 'identity'>, 'colour_space': <libcamera.ColorSpace 'sYCC'>, 'buffer_count': 1, 'queue': True, 'main': {'format': 'BGR888', 'size': (3280, 2464), 'preserve_ar': True, 'stride': 9856, 'framesize': 24285184}, 'lores': None, 'raw': {'format': 'BGGR_PISP_COMP1', 'size': (3280, 2464), 'stride': 3328, 'framesize': 8200192}, 'controls': {'NoiseReductionMode': <NoiseReductionModeEnum.HighQuality: 2>, 'FrameDurationLimits': (100, 1000000000)}, 'sensor': {}, 'display': None, 'encode': None}
+        """
+        Get the dimensions of the left and right camera images.
+        Returns:
+            dict: Dictionary with 'left' and 'right' keys and their image sizes.
+        """
         return dict(
             left=self.left_config['main']['size'],
             right=self.right_config['main']['size']
         )
 
     def get_camera_options(self):
-        # Get min, max, default values for camera_controls
+        """
+        Get min, max, and default values for camera controls.
+        Returns:
+            dict: Dictionary of control options for each control in CONTROLS.
+        """
         return {
             control: {
                 'min': self.left_cam.camera_controls[control][0],
@@ -117,13 +122,22 @@ class StereoCamera:
         }
 
     def get_control_controls(self):
-        # Aperture, Shutter-Speed, ISO
+        """
+        Get all available camera controls for both left and right cameras.
+        Returns:
+            dict: Dictionary with 'left_cam' and 'right_cam' keys and their controls.
+        """
         return dict(
             left_cam=self.left_cam.camera_controls,
             right_cam=self.right_cam.camera_controls
         )
 
     def can_delete_last_images(self):
+        """
+        Check if the last captured images can be deleted.
+        Returns:
+            bool: True if both last captured images exist, False otherwise.
+        """
         if self.last_captured[0] is None or self.last_captured[1] is None:
             return False
         return True
@@ -166,7 +180,14 @@ class StereoCamera:
     
 
     def capture_images(self, label, numberplate):
-
+        """
+        Capture images from both cameras and save them with a unique filename.
+        Args:
+            label (str): Label to include in the filename.
+            numberplate: Numberplate object to update image count/history.
+        Returns:
+            list: List of file paths to the last captured images, or None if not captured.
+        """
         self.start_cameras()
 
         images_dir = os.path.join(self.ROOT_DIR, self.IMAGE_PATH)
@@ -233,12 +254,21 @@ class StereoCamera:
 
 
     def save_cam_config(self, name=str(uuid.uuid4())[:8]):
+        """
+        Save the current camera controls to a configuration file.
+        Args:
+            name (str): Name to use for the config file (default: random uuid).
+        """
         settings_file = os.path.join(self.ROOT_DIR, self.CONFIG_PATH, f'camera_settings_{name}.json')
         with open(settings_file, 'w') as f:
             json.dump(self.current_controls, f, indent=4)
 
     def get_saved_configs(self):
-        # Get all available files in the CONFIG_PATH directory
+        """
+        Get all saved camera configuration files in the config directory.
+        Returns:
+            list: List of config filenames.
+        """
         config_dir = os.path.join(self.ROOT_DIR, self.CONFIG_PATH)
         
         if not os.path.exists(config_dir):
@@ -249,7 +279,15 @@ class StereoCamera:
         return config_files
 
     def load_config(self, config_name):
-        # Load a camera configuration from a file
+        """
+        Load a camera configuration from a file and apply it to both cameras.
+        Args:
+            config_name (str): Name of the config file to load.
+        Returns:
+            dict: The loaded configuration data.
+        Raises:
+            FileNotFoundError: If the config file does not exist.
+        """
         config_dir = os.path.join(self.ROOT_DIR, self.CONFIG_PATH)
         config_file = os.path.join(config_dir, config_name)
         if not os.path.exists(config_file):
@@ -257,9 +295,7 @@ class StereoCamera:
         with open(config_file, 'r') as f:
             config_data = json.load(f)
         self.adjust_config(config_data)
-        # Store the current config name
         self.current_config = config_name
-        
         return config_data
 
 if __name__ == "__main__":

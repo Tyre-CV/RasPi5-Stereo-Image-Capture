@@ -12,6 +12,11 @@ class LightController:
     NUM_PIXELS = 8
 
     def __init__(self):
+        """
+        Initialize the LightController with SPI and NeoPixel configuration.
+        Sets default brightness and turns the light off initially.
+        Shows a startup light effect to indicate readiness.
+        """
         self.spi = board.SPI()
         self.pixels = neopixel.NeoPixel_SPI(self.spi, self.NUM_PIXELS, pixel_order=self.PIXEL_ORDER, auto_write=False)
 
@@ -58,6 +63,10 @@ class LightController:
         self.pixels.show()
 
     def show_off(self):
+        """
+        Display a startup light effect: fade in each pixel, then a quick flash, then turn off.
+        Used to indicate the system is ready.
+        """
         steps = 500 # smoothness of the fade effect
         for i in range(self.NUM_PIXELS):
             for j in range(steps):
@@ -74,58 +83,3 @@ class LightController:
         time.sleep(0.1)
         self.pixels.fill((0, 0, 0))
         self.pixels.show()
-
-    
-
-
-
-
-# N = 100000
-# duration = 10  # seconds for one full cycle (up and down)
-# steps = 1000   # number of steps for smoothness
-# delay = 0.5
-
-# def pick_random_color():
-#     return (
-#         random.randint(0, 255),
-#         random.randint(0, 255),
-#         random.randint(0, 255)
-#     )
-
-# for _ in range(N):
-#     for i in range(NUM_PIXELS):
-#         color = pick_random_color()
-#         r, g, b = color
-#         pixels[i] = (
-#             int(r),
-#             int(g),
-#             int(b)
-#         )
-
-#         pixels.show()
-#         time.sleep(delay)
-
-#         # Turn off the pixel to move to the next
-#         pixels[i] = (0, 0, 0)
-#         pixels.show()
-
-
-# """
-# for _ in range(N):
-#     # Fade in
-#     for i in range(steps):
-#         brightness = int(255 * i / (steps - 1))
-#         pixels.fill((brightness, brightness, brightness))
-#         pixels.show()
-#         time.sleep(duration / (2 * steps))
-#     # Fade out
-#     for i in range(steps - 1, -1, -1):
-#         brightness = int(255 * i / (steps - 1))
-#         pixels.fill((brightness, brightness, brightness))
-#         pixels.show()
-#         time.sleep(duration / (2 * steps))
-
-# """
-# # Turn off all pixels at the end
-# pixels.fill((0, 0, 0))
-# pixels.show()

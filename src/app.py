@@ -162,8 +162,6 @@ with save_col_3:
         options=cam.get_saved_configs(),
     )
 
-
-
 with save_col_4:
     # Button for loading camera config
     if st.button("📂 Load Camera Config"):
@@ -202,24 +200,8 @@ with st.container(height=400):
             )
         new_controls[control] = control_input_slider
 
-        # with control_col_2:
-        #     text_input = st.text_input(
-        #         f"🎛️ {control} (Value)",
-        #         # value=cam_options[control]['default'],
-        #         value=str(st.session_state[f'cam-config-text-{control}']),
-        #         key=f"cam-config-text-{control}",
-        #         on_change=update_cam_config_slider,
-        #         args=(control,)
-        #     )
-
 # Update session state with new controls
 st.session_state['cam-config'] = new_controls
 # Apply new controls to cameras
 session_controls = st.session_state.get('cam-config', {})
 cam.adjust_config(session_controls)
-
-# for control, value in st.session_state['cam-config'].items():
-#     print(f"Control: {control}, Value: {value}")
-
-    
-
